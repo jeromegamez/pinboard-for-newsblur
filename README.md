@@ -33,6 +33,12 @@ RDF feeds is a royal pain, I decided to make it easy for myself: Regular Express
 
 [You shouldn't parse XML or HTML with Regular Expressions](stack-overflow).
 
+## Feeds
+
+* Pinboard Popular
+  * Source: https://feeds.pinboard.in/rss/popular/
+  * NewsBlured: https://jeromegamez.github.io/pinboard-for-newsblur/popular.xml
+
 ## License
 
 This project is published under the [ISC License](LICENSE).
