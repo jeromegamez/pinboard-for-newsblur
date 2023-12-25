@@ -29,7 +29,7 @@ jobs:
       - name: Rewrite feeds
         run: php run.php
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: '.build'
       - name: Deploy to GitHub Pages
