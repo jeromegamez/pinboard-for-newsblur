@@ -48,7 +48,7 @@ RDF feeds is a royal pain, I decided to make it easy for myself: Regular Express
 
 This project is published under the [ISC License](LICENSE).
 
-[dev]: https://dev.to/jeromegamez/after-more-then-20-years-i-published-my-first-dirty-project-1amn_
+[dev]: https://dev.to/jeromegamez/after-more-then-20-years-i-published-my-first-dirty-project-1amn
 [pinboard]: https://pinboard.in
 [mine]: https://pinboard.in/u:jeromegamez
 [popular]: https://pinboard.in/popular/
