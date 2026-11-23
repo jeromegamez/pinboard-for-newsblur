@@ -10,12 +10,24 @@ $feeds = [
 
 // Functions
 
-$rewrite = function (string $source) use ($pattern) {
-    return preg_replace_callback($pattern, function (array $matches) {
+$rewrite = function (string $source) use ($pattern): string {
+    $contents = file_get_contents($source);
+
+    if ($contents === false || trim($contents) === '') {
+        throw new RuntimeException("Failed to fetch feed: {$source}");
+    }
+
+    $rewritten = preg_replace_callback($pattern, function (array $matches) {
         $newSubject = implode(', ', explode(' ', $matches['subject']));
 
         return $matches['prefix'] . $newSubject;
-    }, file_get_contents($source));
+    }, $contents);
+
+    if ($rewritten === null) {
+        throw new RuntimeException("Failed to rewrite feed: {$source}");
+    }
+
+    return $rewritten;
 };
 
 $save = function (string $contents, string $name) use ($buildDir) {
