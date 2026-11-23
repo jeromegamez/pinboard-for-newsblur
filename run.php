@@ -7,16 +7,35 @@ $buildDir = __DIR__ . '/.build/';
 $feeds = [
     ['https://feeds.pinboard.in/rss/popular/', 'popular.xml']
 ];
+$maxAttempts = 3;
+$retryDelaySeconds = 5;
+$timeoutSeconds = 15;
 
 // Functions
 
-$rewrite = function (string $source) use ($pattern): string {
-    $contents = file_get_contents($source);
+$fetch = function (string $source) use ($maxAttempts, $retryDelaySeconds, $timeoutSeconds): string {
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => $timeoutSeconds,
+        ],
+    ]);
 
-    if ($contents === false || trim($contents) === '') {
-        throw new RuntimeException("Failed to fetch feed: {$source}");
+    for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        $contents = file_get_contents($source, false, $context);
+
+        if ($contents !== false && trim($contents) !== '') {
+            return $contents;
+        }
+
+        if ($attempt < $maxAttempts) {
+            sleep($retryDelaySeconds * $attempt);
+        }
     }
 
+    throw new RuntimeException("Failed to fetch feed after {$maxAttempts} attempts: {$source}");
+};
+
+$rewrite = function (string $contents) use ($pattern): string {
     $rewritten = preg_replace_callback($pattern, function (array $matches) {
         $newSubject = implode(', ', explode(' ', $matches['subject']));
 
@@ -24,7 +43,7 @@ $rewrite = function (string $source) use ($pattern): string {
     }, $contents);
 
     if ($rewritten === null) {
-        throw new RuntimeException("Failed to rewrite feed: {$source}");
+        throw new RuntimeException('Failed to rewrite feed');
     }
 
     return $rewritten;
@@ -43,5 +62,5 @@ if (!file_exists($buildDir)) {
 foreach ($feeds as $feed) {
     [$url, $filename] = $feed;
 
-    $save($rewrite($url), $filename);
+    $save($rewrite($fetch($url)), $filename);
 }
