@@ -13,7 +13,7 @@ $timeoutSeconds = 15;
 
 // Functions
 
-$fetch = function (string $source) use ($maxAttempts, $retryDelaySeconds, $timeoutSeconds): string {
+$fetch = function (string $source) use ($maxAttempts, $retryDelaySeconds, $timeoutSeconds): ?string {
     $context = stream_context_create([
         'http' => [
             'timeout' => $timeoutSeconds,
@@ -32,7 +32,7 @@ $fetch = function (string $source) use ($maxAttempts, $retryDelaySeconds, $timeo
         }
     }
 
-    throw new RuntimeException("Failed to fetch feed after {$maxAttempts} attempts: {$source}");
+    return null;
 };
 
 $rewrite = function (string $contents) use ($pattern): string {
@@ -55,12 +55,24 @@ $save = function (string $contents, string $name) use ($buildDir) {
 
 // Execution
 
-if (!file_exists($buildDir)) {
-    mkdir($buildDir);
-}
+$outputs = [];
 
 foreach ($feeds as $feed) {
     [$url, $filename] = $feed;
 
-    $save($rewrite($fetch($url)), $filename);
+    $contents = $fetch($url);
+    if ($contents === null) {
+        fwrite(STDERR, "Failed to fetch feed after {$maxAttempts} attempts: {$url}\n");
+        exit(0);
+    }
+
+    $outputs[$filename] = $rewrite($contents);
+}
+
+if (!file_exists($buildDir)) {
+    mkdir($buildDir);
+}
+
+foreach ($outputs as $filename => $contents) {
+    $save($contents, $filename);
 }
